@@ -196,8 +196,14 @@ class Utils:
         Returns the path to the saved WAV file.
         """
         try:
+            # Path to your cookies file on the VPS
+            cookies_path = 'cookies.txt'  
+
             # Get video info to use its title in the filename
-            with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            with yt_dlp.YoutubeDL({
+                'quiet': True,
+                'cookies': cookies_path  # <-- add this
+            }) as ydl:
                 info_dict = ydl.extract_info(youtube_url, download=False)
                 original_title = info_dict.get('title', 'audio')
                 formatted_title = Utils._format_filename(original_title)
@@ -208,6 +214,7 @@ class Utils:
 
             ydl_opts = {
                 'format': 'bestaudio/best',
+                'cookies': cookies_path,  # <-- use cookies here too
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'wav',
@@ -220,7 +227,7 @@ class Utils:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
 
-            # Wait for yt_dlp to actually create the WAV file
+            # Wait for yt_dlp to create the WAV file
             expected_output = output_path_no_ext + ".wav"
             timeout = 5
             while not os.path.exists(expected_output) and timeout > 0:
