@@ -1,3 +1,4 @@
+import asyncio
 import streamlit as st
 import pandas as pd
 import tempfile
@@ -12,6 +13,11 @@ import soundfile as sf
 import torchaudio
 import yt_dlp
 import torch
+
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 class Interface:
     @staticmethod
