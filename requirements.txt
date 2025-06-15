@@ -6,3 +6,4 @@ torch==2.7.1
 torchaudio==2.7.1
 transformers==4.38.2
 yt-dlp==2025.6.9
+accelerate==0.30.1
