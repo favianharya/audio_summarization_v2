@@ -244,8 +244,8 @@ class Generation:
     ):
         self.summarization_model = summarization_model
         self.speech_to_text_model = speech_to_text_model
-        self.device = "cuda:0" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
-        self.dtype = torch.float16 if self.device != "cpu" else torch.float32
+        self.device = "cpu"
+        self.dtype = torch.float32
         self.processor_speech = AutoProcessor.from_pretrained(speech_to_text_model)
         self.model_speech = AutoModelForSpeechSeq2Seq.from_pretrained(
             speech_to_text_model,
