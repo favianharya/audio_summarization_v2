@@ -1,4 +1,3 @@
-import asyncio
 import streamlit as st
 import pandas as pd
 import tempfile
@@ -13,11 +12,6 @@ import soundfile as sf
 import torchaudio
 import yt_dlp
 import torch
-
-try:
-    asyncio.get_running_loop()
-except RuntimeError:
-    asyncio.set_event_loop(asyncio.new_event_loop())
 
 class Interface:
     @staticmethod
@@ -37,9 +31,10 @@ class Interface:
         footer {visibility: hidden;}</style>
         """
         st.markdown(hide_streamlit_footer, unsafe_allow_html=True)
-
+        
         st.title(title)
-        st.markdown(description)
+            
+        st.info(description)
         st.write("\n")
 
     @staticmethod
@@ -201,43 +196,42 @@ class Utils:
         Returns the path to the saved WAV file.
         """
         try:
-            with st.spinner("Downloading and converting audio..."):
-                # Get video info to use its title in the filename
-                with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
-                    info_dict = ydl.extract_info(youtube_url, download=False)
-                    original_title = info_dict.get('title', 'audio')
-                    formatted_title = Utils._format_filename(original_title)
+            # Get video info to use its title in the filename
+            with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+                info_dict = ydl.extract_info(youtube_url, download=False)
+                original_title = info_dict.get('title', 'audio')
+                formatted_title = Utils._format_filename(original_title)
 
-                # Create a temporary directory
-                temp_dir = tempfile.mkdtemp()
-                output_path_no_ext = os.path.join(temp_dir, formatted_title)
+            # Create a temporary directory
+            temp_dir = tempfile.mkdtemp()
+            output_path_no_ext = os.path.join(temp_dir, formatted_title)
 
-                ydl_opts = {
-                    'format': 'bestaudio/best',
-                    'postprocessors': [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'wav',
-                        'preferredquality': '192',
-                    }],
-                    'outtmpl': output_path_no_ext,
-                    'quiet': True
-                }
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'wav',
+                    'preferredquality': '192',
+                }],
+                'outtmpl': output_path_no_ext,
+                'quiet': True
+            }
 
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([youtube_url])
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([youtube_url])
 
-                # Wait for yt_dlp to actually create the WAV file
-                expected_output = output_path_no_ext + ".wav"
-                timeout = 5
-                while not os.path.exists(expected_output) and timeout > 0:
-                    time.sleep(1)
-                    timeout -= 1
+            # Wait for yt_dlp to actually create the WAV file
+            expected_output = output_path_no_ext + ".wav"
+            timeout = 5
+            while not os.path.exists(expected_output) and timeout > 0:
+                time.sleep(1)
+                timeout -= 1
 
-                if not os.path.exists(expected_output):
-                    raise FileNotFoundError(f"Audio file was not saved as expected: {expected_output}")
+            if not os.path.exists(expected_output):
+                raise FileNotFoundError(f"Audio file was not saved as expected: {expected_output}")
 
-                st.toast(f"Audio downloaded and saved to: {expected_output}")
-                return expected_output
+            st.toast(f"Audio downloaded and saved to: {expected_output}")
+            return expected_output
 
         except Exception as e:
             st.toast(f"Failed to download {youtube_url}: {e}")
@@ -323,8 +317,8 @@ class Generation:
         
 def main():
   Interface.get_header(
-    title="🗣️ Financial YouTube Video Audio Summarization",
-    description="Upload an audio file from a financial YouTube video to transcribe and summarize its content using Whisper."
+    title="Financial YouTube Video Audio Summarization",
+    description="🎧 Upload an financial audio file or financial YouTube video link to 📝 transcribe and 📄 summarize its content using CrisperWhisper and Financial Fine-tuned BRIO 🤖."
   )
 
   generate = False  
