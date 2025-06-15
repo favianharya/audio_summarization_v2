@@ -196,40 +196,42 @@ class Utils:
         Returns the path to the saved WAV file.
         """
         try:
-            # Path to your cookies file on the VPS
-            cookies_path = 'cookies.txt'  
-
-            # Get video info to use its title in the filename
-            with yt_dlp.YoutubeDL({
-                'quiet': True,
-                'cookies': cookies_path  # <-- add this
-            }) as ydl:
-                info_dict = ydl.extract_info(youtube_url, download=False)
-                original_title = info_dict.get('title', 'audio')
-                formatted_title = Utils._format_filename(original_title)
+            # Absolute path to your working cookies.txt
+            cookies_path = '/root/audio_summarization_favian_test/audio_summarization_v2/cookies.txt'
 
             # Create a temporary directory
             temp_dir = tempfile.mkdtemp()
-            output_path_no_ext = os.path.join(temp_dir, formatted_title)
 
+            # Step 1: Extract video info
+            with yt_dlp.YoutubeDL({
+                'quiet': True,
+                'cookies': cookies_path
+            }) as ydl:
+                info_dict = ydl.extract_info(youtube_url, download=False)
+                title = info_dict.get('title', 'audio')
+                sanitized_title = title.replace(" ", "_").replace("/", "_").replace("\\", "_")
+                output_path_no_ext = os.path.join(temp_dir, sanitized_title)
+
+            # Step 2: Download and convert to WAV
             ydl_opts = {
                 'format': 'bestaudio/best',
-                'cookies': cookies_path,  # <-- use cookies here too
+                'cookies': cookies_path,
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'wav',
                     'preferredquality': '192',
                 }],
                 'outtmpl': output_path_no_ext,
-                'quiet': True
+                'quiet': True,
+                'noplaylist': True
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
 
-            # Wait for yt_dlp to create the WAV file
+            # Wait for .wav file
             expected_output = output_path_no_ext + ".wav"
-            timeout = 5
+            timeout = 10
             while not os.path.exists(expected_output) and timeout > 0:
                 time.sleep(1)
                 timeout -= 1
@@ -237,13 +239,12 @@ class Utils:
             if not os.path.exists(expected_output):
                 raise FileNotFoundError(f"Audio file was not saved as expected: {expected_output}")
 
-            st.toast(f"Audio downloaded and saved to: {expected_output}")
+            print(f"Audio downloaded to: {expected_output}")
             return expected_output
 
         except Exception as e:
-            st.toast(f"Failed to download {youtube_url}: {e}")
+            print(f"Failed to download {youtube_url}: {e}")
             return None
-
 class Generation:
     def __init__(
             self, 
