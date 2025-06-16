@@ -196,30 +196,27 @@ class Utils:
         Returns the path to the saved WAV file.
         """
         try:
-            # Absolute path to your working cookies.txt
-            cookies_path = 'cookies.txt'
-
-            # Create a temporary directory
+            cookies_path = '/root/audio_summarization_favian_test/audio_summarization_v2/cookies.txt'
             temp_dir = tempfile.mkdtemp()
 
-            # Step 1: Extract video info
+            # Use the video title as filename
             with yt_dlp.YoutubeDL({
                 'quiet': True,
                 'cookies': cookies_path,
-                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                 'nocheckcertificate': True,
-                'forceipv4': True
+                'forceipv4': True,
             }) as ydl:
                 info_dict = ydl.extract_info(youtube_url, download=False)
                 title = info_dict.get('title', 'audio')
                 sanitized_title = title.replace(" ", "_").replace("/", "_").replace("\\", "_")
                 output_path_no_ext = os.path.join(temp_dir, sanitized_title)
 
-            # Step 2: Download and convert to WAV
+            # Now download audio with exact same settings
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'cookies': cookies_path,
-                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                 'nocheckcertificate': True,
                 'forceipv4': True,
                 'postprocessors': [{
@@ -235,7 +232,6 @@ class Utils:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
 
-            # Wait for .wav file
             expected_output = output_path_no_ext + ".wav"
             timeout = 10
             while not os.path.exists(expected_output) and timeout > 0:
