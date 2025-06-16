@@ -199,6 +199,10 @@ class Utils:
             cookies_path = '/root/audio_summarization_favian_test/audio_summarization_v2/cookies.txt'
             temp_dir = tempfile.mkdtemp()
 
+            # First, verify cookies file exists
+            if not os.path.exists(cookies_path):
+                raise FileNotFoundError(f"Cookies file not found: {cookies_path}")
+
             # Use the video title as filename
             with yt_dlp.YoutubeDL({
                 'quiet': True,
@@ -209,10 +213,12 @@ class Utils:
             }) as ydl:
                 info_dict = ydl.extract_info(youtube_url, download=False)
                 title = info_dict.get('title', 'audio')
-                sanitized_title = title.replace(" ", "_").replace("/", "_").replace("\\", "_")
+                # More aggressive sanitization
+                sanitized_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                sanitized_title = sanitized_title.replace(" ", "_")[:100]  # Limit length
                 output_path_no_ext = os.path.join(temp_dir, sanitized_title)
 
-            # Now download audio with exact same settings
+            # Enhanced download options - match your working command line version exactly
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'cookies': cookies_path,
@@ -224,21 +230,35 @@ class Utils:
                     'preferredcodec': 'wav',
                     'preferredquality': '192',
                 }],
-                'outtmpl': output_path_no_ext,
-                'quiet': True,
-                'noplaylist': True
+                'outtmpl': output_path_no_ext + '.%(ext)s',
+                'quiet': False,  # Enable logging to see what's happening
+                'noplaylist': True,
+                # Additional options that might help
+                'extract_flat': False,
+                'cookiesfrombrowser': None,  # Explicitly disable browser cookies
+                'no_warnings': False,
             }
 
+            print(f"Attempting to download: {youtube_url}")
+            print(f"Using cookies from: {cookies_path}")
+            
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
 
             expected_output = output_path_no_ext + ".wav"
-            timeout = 10
+            timeout = 30  # Increased timeout
+            print(f"Waiting for file: {expected_output}")
+            
             while not os.path.exists(expected_output) and timeout > 0:
                 time.sleep(1)
                 timeout -= 1
+                if timeout % 5 == 0:  # Progress indicator
+                    print(f"Still waiting... {timeout}s remaining")
 
             if not os.path.exists(expected_output):
+                # Check if any files were created in temp_dir
+                files_in_temp = os.listdir(temp_dir)
+                print(f"Files in temp directory: {files_in_temp}")
                 raise FileNotFoundError(f"Audio file was not saved as expected: {expected_output}")
 
             print(f"Audio downloaded to: {expected_output}")
