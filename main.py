@@ -197,7 +197,7 @@ class Utils:
         """
         try:
             # Absolute path to your working cookies.txt
-            cookies_path = '/root/audio_summarization_favian_test/audio_summarization_v2/cookies.txt'
+            cookies_path = 'cookies.txt'
 
             # Create a temporary directory
             temp_dir = tempfile.mkdtemp()
