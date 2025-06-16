@@ -205,7 +205,10 @@ class Utils:
             # Step 1: Extract video info
             with yt_dlp.YoutubeDL({
                 'quiet': True,
-                'cookies': cookies_path
+                'cookies': cookies_path,
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'nocheckcertificate': True,
+                'forceipv4': True
             }) as ydl:
                 info_dict = ydl.extract_info(youtube_url, download=False)
                 title = info_dict.get('title', 'audio')
@@ -216,6 +219,9 @@ class Utils:
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'cookies': cookies_path,
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'nocheckcertificate': True,
+                'forceipv4': True,
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'wav',
@@ -245,6 +251,7 @@ class Utils:
         except Exception as e:
             print(f"Failed to download {youtube_url}: {e}")
             return None
+        
 class Generation:
     def __init__(
             self, 
