@@ -9,17 +9,9 @@ import os
 from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq, pipeline, AutoTokenizer
 from torchaudio.transforms import Resample
 import soundfile as sf
-from torchaudio import load, transforms, save
+import torchaudio
 import yt_dlp
 import torch
-
-import warnings
-warnings.filterwarnings("ignore", message="Torchaudio's I/O functions now support par-call backend dispatch")
-warnings.filterwarnings("ignore", module="streamlit.watcher.local_sources_watcher")
-warnings.filterwarnings("ignore", module="torch._classes")
-
-os.environ['STREAMLIT_SERVER_RUN_ON_SAVE'] = 'false'
-os.environ['STREAMLIT_WATCHER_TYPE'] = 'none'
 
 class Interface:
     @staticmethod
@@ -120,7 +112,7 @@ class Utils:
         """
         Preprocess the audio file by converting it to mono and resampling to 16000 Hz.
         """
-        waveform, sample_rate = load(input_path)
+        waveform, sample_rate = torchaudio.load(input_path)
         print(f"📢 Original waveform shape: {waveform.shape}")
         print(f"📢 Original sample rate: {sample_rate}")
 
@@ -132,7 +124,7 @@ class Utils:
         # Resample to 16000 Hz if needed
         target_sample_rate = 16000
         if sample_rate != target_sample_rate:
-            resampler = transforms.Resample(orig_freq=sample_rate, new_freq=target_sample_rate)
+            resampler = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=target_sample_rate)
             waveform = resampler(waveform)
             print(f"✅ Resampled to {target_sample_rate} Hz.")
             sample_rate = target_sample_rate
@@ -141,7 +133,7 @@ class Utils:
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
             output_path = tmpfile.name
 
-        save(output_path, waveform, sample_rate)
+        torchaudio.save(output_path, waveform, sample_rate)
         print(f"✅ Saved preprocessed audio to temporary file: {output_path}")
 
         return output_path
@@ -170,7 +162,7 @@ class Generation:
         transcribe audio using the PyTorch-based speech-to-text model.
         """
         converted_path = Utils.preprocess_audio(file_path)
-        waveform, sample_rate = load(converted_path)
+        waveform, sample_rate = torchaudio.load(converted_path)
         duration = waveform.shape[1] / sample_rate
         if duration < 1.0:
             print("❌ Audio too short to process.")
